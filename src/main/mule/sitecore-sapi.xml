@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+    <http:listener-config name="sitecore-sapi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8082" connectionIdleTimeout="3000000"/>
+    </http:listener-config>
+    <apikit:config name="sitecore-sapi-config" api="resource::600a1e2b-9eca-403f-b97d-1178aa13d11a:dch-sitecore:1.0.1:raml:zip:sitecore-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="sitecore-sapi-main">
+        <http:listener config-ref="sitecore-sapi-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="sitecore-sapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="sitecore-sapi-console">
+        <http:listener config-ref="sitecore-sapi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="sitecore-sapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\assets\linkUpdate:application\json:sitecore-sapi-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Link updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\assets:sitecore-sapi-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorMessage: "The required header 'x-correlation-id' was not provided",
+  errorType: "BAD REQUEST",
+  correlationId: "65189d64-019c-11eb-adc1-0242ac120002",
+  errorCode: 400
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\health:sitecore-sapi-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  application_name: "",
+  application_version: "1.0.0",
+  api_name: "",
+  environment: "Sandbox",
+  status: "running"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\assets\(assetId):sitecore-sapi-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="assetId">attributes.uriParams.'assetId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: 3128463,
+  identifier: "NCJpw1k720ajyFLeQzcudw",
+  cultures: [
+    "en-US"
+  ],
+  properties: {
+    "DRM.RightsProfile.Name": "04042019 NAM RIGHTS PROFILE",
+    "DRM.RightsProfile.StartDate": "2019-04-04T16:15:27+05:30",
+    "DRM.RightsProfile.TimeType": {
+      identifier: "DRM.TimeTypePerpetual",
+      labels: {}
+    },
+    "DRM.RightsProfile.Duration": null,
+    "DRM.RightsProfile.ExpirationDate": null,
+    ChannelOtherDetails: "Restricted to USA only in perpetuity.",
+    "DRM.RightsProfile.YearCopyright": null,
+    "DRM.RightsProfile.AdaptationRights": null,
+    "DRM.RightsProfile.RightsNotes": null,
+    "DRM.RightsProfile.CalculatedExpirationDate": "9999-12-31T23:59:59.9999999+00:00",
+    "DRM.RightsProfile.Type": null
+  },
+  relations: {
+    GeographyToRightsProfile: {
+      href: "https://31-qa.diageocontenthub.com/api/entities/3128463/relations/GeographyToRightsProfile"
+    },
+    "DRM.Media.MediaToRightsProfile": {
+      parents: [
+        {
+          href: "https://31-qa.diageocontenthub.com/api/entities/22495"
+        }
+      ],
+      inherits_security: true,
+      self: {
+        href: "https://31-qa.diageocontenthub.com/api/entities/3128463/relations/DRM.Media.MediaToRightsProfile"
+      }
+    },
+    "DRM.Contract.ContractToRightsProfile": {
+      href: "https://31-qa.diageocontenthub.com/api/entities/3128463/relations/DRM.Contract.ContractToRightsProfile"
+    },
+    "DRM.Subject.SubjectToRightsProfile": {
+      href: "https://31-qa.diageocontenthub.com/api/entities/3128463/relations/DRM.Subject.SubjectToRightsProfile"
+    },
+    "DRM.RightsProfile.RightsProfileToAsset": {
+      href: "https://31-qa.diageocontenthub.com/api/entities/3128463/relations/DRM.RightsProfile.RightsProfileToAsset"
+    }
+  },
+  created_by: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/2115741",
+    title: "The user who created the entity"
+  },
+  created_on: "2019-04-05T10:46:08.3025366Z",
+  modified_by: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/2115741",
+    title: "The user who last modified the entity"
+  },
+  modified_on: "2019-04-05T10:46:08.3025366Z",
+  entitydefinition: {
+    href: "https://31-qa.diageocontenthub.com/api/entitydefinitions/M.DRM.RightsProfile",
+    title: "The entity definition for this entity"
+  },
+  copy: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463/copy",
+    title: "Copy this entity"
+  },
+  permissions: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463/permissions",
+    title: "The permissions on this entity"
+  },
+  lifecycle: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463/lifecycle",
+    title: "The lifecycle action for this entity."
+  },
+  saved_selections: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463/savedselections",
+    title: "The saved selections this entity belongs to"
+  },
+  roles: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463/roles",
+    title: "Roles for this entity"
+  },
+  annotations: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463/annotations",
+    title: "Annotations for this entity"
+  },
+  is_root_taxonomy_item: false,
+  is_path_root: false,
+  inherits_security: true,
+  is_system_owned: false,
+  version: 1,
+  self: {
+    href: "https://31-qa.diageocontenthub.com/api/entities/3128463"
+  },
+  related_paths: {
+    GeographyToRightsProfile: [
+      [
+        {
+          values: {
+            "en-US": "NAM"
+          },
+          entity: "https://31-qa.diageocontenthub.com/api/entities/20601",
+          definition: "https://31-qa.diageocontenthub.com/api/entitydefinitions/Diageo.Geography"
+        }, 
+        {
+          values: {
+            "en-US": "North America"
+          },
+          entity: "https://31-qa.diageocontenthub.com/api/entities/20602",
+          definition: "https://31-qa.diageocontenthub.com/api/entitydefinitions/Diageo.Geography"
+        }, 
+        {
+          values: {
+            "en-US": "United States of America"
+          },
+          entity: "https://31-qa.diageocontenthub.com/api/entities/20604",
+          definition: "https://31-qa.diageocontenthub.com/api/entitydefinitions/Diageo.Geography"
+        }
+      ]
+    ],
+    "DRM.Media.MediaToRightsProfile": [
+      [
+        {
+          values: {
+            "en-US": "Other (please provide information in Comments field)"
+          },
+          entity: "https://31-qa.diageocontenthub.com/api/entities/22495",
+          definition: "https://31-qa.diageocontenthub.com/api/entitydefinitions/M.DRM.Media"
+        }
+      ]
+    ]
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\assets:application\json:sitecore-sapi-config">
+		<flow-ref doc:name="Flow Reference" doc:id="a70410e4-59e2-4bbd-9a10-2ceb6af5c4b4" name="post-search-assets"/>
+    </flow>
+</mule>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="88706891-7706-4f67-93af-a82b16d81380">
+		<http:request-connection connectionIdleTimeout="300000000"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="393ce76e-5ba4-4629-b488-048920c46509" >
+	</http:request-config>
+	<flow name="post-search-assets" doc:id="75817c3d-dcac-4a84-a812-d0cb77de6ed5" >
+		<ee:transform doc:name="Transform Message" doc:id="ac42fe12-762b-4aff-ae6c-7011e59ae12b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="c4c6c7c9-6c97-4209-bbf6-1cbc28836ba4" config-ref="HTTP_Request_configuration1" url="http://sitecore-integration.us-e2.cloudhub.io/search" responseTimeout="300000">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"x-auth-token" : "DCH",
+	"X-Correlation-Id" : "DCH",
+	"content-type" : "application/json"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"type" : "search"
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="ccb54f45-d95b-4b64-a6f8-cb508b996e0d" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="740746d5-4604-44f3-9a94-6c12fc543f2a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
