@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>600a1e2b-9eca-403f-b97d-1178aa13d11a</groupId>
 			<artifactId>dch-sitecore</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>

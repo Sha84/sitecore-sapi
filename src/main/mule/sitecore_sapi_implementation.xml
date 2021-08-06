@@ -10,6 +10,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	</http:request-config>
 	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="393ce76e-5ba4-4629-b488-048920c46509" >
 	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="52e3d7a7-cf77-4c0f-91e7-b2f8d593d28d" />
 	<flow name="post-search-assets" doc:id="75817c3d-dcac-4a84-a812-d0cb77de6ed5" >
 		<ee:transform doc:name="Transform Message" doc:id="ac42fe12-762b-4aff-ae6c-7011e59ae12b" >
 			<ee:message >
@@ -56,5 +57,24 @@ output application/json
 				</ee:transform>
 			</on-error-propagate>
 		</error-handler>
+	</flow>
+	<flow name="link-update-flow" doc:id="1ff81d4f-5771-4f24-9c60-57611ac68ab3" >
+		<ee:transform doc:name="Transform Message" doc:id="de60f513-dfba-4954-9a50-ef8e5859828b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="PUT" doc:name="Request" doc:id="37903f34-278a-4f75-bdc6-46f6a8836cba" config-ref="HTTP_Request_configuration2" url="http://sitecore-integration.us-e2.cloudhub.io/entities/575365"/>
+		<ee:transform doc:name="Transform Message" doc:id="e13b0121-13ca-48a9-b55d-016f0a094e98" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 	</flow>
 </mule>
