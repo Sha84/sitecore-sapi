@@ -59,6 +59,13 @@
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
+		<dependency>
+			<groupId>694704ae-436b-41ec-be10-7e4873bd5821</groupId>
+			<artifactId>dch-sitecore</artifactId>
+			<version>1.0.0</version>
+			<classifier>raml</classifier>
+			<type>zip</type>
+		</dependency>
 	</dependencies>
 
 	<repositories>

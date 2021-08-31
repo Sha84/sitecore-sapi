@@ -5,14 +5,8 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="88706891-7706-4f67-93af-a82b16d81380">
-		<http:request-connection connectionIdleTimeout="300000000"/>
-	</http:request-config>
-	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="393ce76e-5ba4-4629-b488-048920c46509" >
-	</http:request-config>
-	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="52e3d7a7-cf77-4c0f-91e7-b2f8d593d28d" />
 	<flow name="post-search-assets" doc:id="75817c3d-dcac-4a84-a812-d0cb77de6ed5" >
-		<ee:transform doc:name="Transform Message" doc:id="ac42fe12-762b-4aff-ae6c-7011e59ae12b" >
+		<ee:transform doc:name="Input Payload" doc:id="ac42fe12-762b-4aff-ae6c-7011e59ae12b" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -20,7 +14,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<http:request method="POST" doc:name="Request" doc:id="c4c6c7c9-6c97-4209-bbf6-1cbc28836ba4" config-ref="HTTP_Request_configuration1" url="http://sitecore-integration.us-e2.cloudhub.io/search" responseTimeout="300000">
+		<http:request method="POST" doc:name="Asset Search" doc:id="c4c6c7c9-6c97-4209-bbf6-1cbc28836ba4" config-ref="httpRequestConfiguration" url="${request.aurl}" responseTimeout="300000">
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
@@ -35,7 +29,7 @@ payload]]></ee:set-payload>
 }]]]></http:query-params>
 		</http:request>
 		<logger level="INFO" doc:name="Logger" doc:id="ccb54f45-d95b-4b64-a6f8-cb508b996e0d" message="#[payload]"/>
-		<ee:transform doc:name="Transform Message" doc:id="740746d5-4604-44f3-9a94-6c12fc543f2a" >
+		<ee:transform doc:name="Asset Response" doc:id="740746d5-4604-44f3-9a94-6c12fc543f2a" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -44,8 +38,8 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8c4ae0a1-dca8-4d36-bb93-a6b4d5690774" type="HTTP:BAD_GATEWAY, HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:CONNECTIVITY">
-				<ee:transform doc:name="Transform Message" doc:id="89c4e390-e84c-4c6d-94a0-619e4dcffab7" >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="641cd85e-edfa-4891-8435-eb1fcff588bc" type="HTTP:BAD_GATEWAY, HTTP:BAD_REQUEST">
+				<ee:transform doc:name="Transform Message" doc:id="5174023b-0700-49de-bb1a-3ab533210dbb" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -59,7 +53,7 @@ output application/json
 		</error-handler>
 	</flow>
 	<flow name="link-update-flow" doc:id="1ff81d4f-5771-4f24-9c60-57611ac68ab3" >
-		<ee:transform doc:name="Transform Message" doc:id="de60f513-dfba-4954-9a50-ef8e5859828b" >
+		<ee:transform doc:name="Updated Urls" doc:id="de60f513-dfba-4954-9a50-ef8e5859828b" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -67,8 +61,8 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<http:request method="PUT" doc:name="Request" doc:id="37903f34-278a-4f75-bdc6-46f6a8836cba" config-ref="HTTP_Request_configuration2" url="http://sitecore-integration.us-e2.cloudhub.io/entities/575365"/>
-		<ee:transform doc:name="Transform Message" doc:id="e13b0121-13ca-48a9-b55d-016f0a094e98" >
+		<http:request method="PUT" doc:name="Put Request" doc:id="37903f34-278a-4f75-bdc6-46f6a8836cba" config-ref="httpRequestConfiguration" url="${request.lurl}" responseTimeout="300000"/>
+		<ee:transform doc:name="Link Response" doc:id="e13b0121-13ca-48a9-b55d-016f0a094e98" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -76,5 +70,19 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cac0a84a-cc2d-43df-b970-3ed0a5f139bb" type="HTTP:BAD_GATEWAY, HTTP:BAD_REQUEST, HTTP:CONNECTIVITY, HTTP:INTERNAL_SERVER_ERROR, HTTP:METHOD_NOT_ALLOWED">
+				<ee:transform doc:name="Transform Message" doc:id="fee72fe4-3232-42cb-a819-f61c48f86a92" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
 	</flow>
 </mule>

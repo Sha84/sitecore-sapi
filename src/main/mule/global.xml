@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="b45980fb-721f-447a-acfc-af05153e4349" file="properties/${env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="7a0c544d-147c-4a07-b585-0dace21efe3b" name="env" value="dev" />
+	<http:listener-config name="sitecore-sapi-2-httpListenerConfig" doc:name="HTTP Listener config" doc:id="7abb3d2b-0a45-49aa-a6d3-222f668ce88e" >
+		<http:listener-connection host="${http.host}" port="${http.port}" connectionIdleTimeout="${http.timeout}">
+		</http:listener-connection>
+	</http:listener-config>
+	<apikit:config outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" doc:name="Router" doc:id="22dd1ac2-7a79-4a93-b89a-10699b645c9d" name="sitecore-sapi-2-config" api="resource::694704ae-436b-41ec-be10-7e4873bd5821:dch-sitecore:1.0.0:raml:zip:sitecore-sapi.raml"/>
+	<http:request-config name="httpRequestConfiguration" doc:name="HTTP Request configuration" doc:id="50982359-fc33-43f2-97e1-9cba4bcadf14" >
+		<http:request-connection connectionIdleTimeout="3000000" />
+	</http:request-config>
+</mule>
